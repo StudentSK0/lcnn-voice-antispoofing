@@ -1,6 +1,11 @@
 from pathlib import Path
 from typing import TypedDict
 
+import torchaudio
+from torch.utils.data import Dataset
+
+from src.datasets.audio_utils import fix_audio_length
+
 
 class ASVspoofIndexEntry(TypedDict):
     path: str
@@ -15,6 +20,77 @@ class ProtocolEntry(TypedDict):
     audio_id: str
     attack_id: str
     label: int
+
+
+class ASVspoofDataset(Dataset):
+    def __init__(
+        self,
+        protocol_path: str | Path,
+        audio_dir: str | Path,
+        target_length: int,
+        expected_sample_rate: int = 16000,
+        random_crop: bool = False,
+    ) -> None:
+        if target_length <= 0:
+            raise ValueError(
+                f"target_length must be greater than zero, got {target_length}"
+            )
+
+        if expected_sample_rate <= 0:
+            raise ValueError(
+                "expected_sample_rate must be greater than zero, "
+                f"got {expected_sample_rate}"
+            )
+
+        self.index = build_asvspoof_index(
+            protocol_path=protocol_path,
+            audio_dir=audio_dir,
+        )
+
+        self.target_length = target_length
+        self.expected_sample_rate = expected_sample_rate
+        self.random_crop = random_crop
+
+    def __len__(self) -> int:
+        return len(self.index)
+
+    def __getitem__(self, index: int) -> dict:
+        entry = self.index[index]
+        audio_path = entry["path"]
+
+        waveform, sample_rate = torchaudio.load(audio_path)
+
+        if sample_rate != self.expected_sample_rate:
+            raise ValueError(
+                f"Expected sample rate {self.expected_sample_rate} Hz, "
+                f"got {sample_rate} Hz for file {audio_path}"
+            )
+
+        if waveform.ndim != 2:
+            raise ValueError(
+                "Expected waveform shape [channels, samples], "
+                f"got {list(waveform.shape)} for file {audio_path}"
+            )
+
+        if waveform.shape[0] != 1:
+            raise ValueError(
+                "Expected mono waveform with shape [1, samples], "
+                f"got {list(waveform.shape)} for file {audio_path}"
+            )
+
+        waveform = fix_audio_length(
+            waveform=waveform,
+            target_length=self.target_length,
+            random_crop=self.random_crop,
+        )
+
+        return {
+            "waveform": waveform,
+            "labels": entry["label"],
+            "audio_id": entry["audio_id"],
+            "speaker_id": entry["speaker_id"],
+            "attack_id": entry["attack_id"],
+        }
 
 
 def parse_protocol_line(line: str) -> ProtocolEntry:
