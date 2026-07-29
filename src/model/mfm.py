@@ -3,7 +3,7 @@ from torch import Tensor, nn
 
 
 class MaxFeatureMap(nn.Module):
-    """apply pairwise maximum across two channel groups"""
+    """Apply pairwise maximum across two channel groups."""
 
     def forward(self, x: Tensor) -> Tensor:
         if x.ndim < 2:

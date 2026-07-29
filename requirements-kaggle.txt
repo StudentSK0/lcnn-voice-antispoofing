@@ -1,0 +1,7 @@
+hydra-core
+torchmetrics
+safetensors
+tqdm
+matplotlib
+pandas
+wandb

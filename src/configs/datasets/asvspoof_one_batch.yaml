@@ -1,0 +1,19 @@
+train:
+  _target_: torch.utils.data.Subset
+  dataset:
+    _target_: src.datasets.ASVspoofDataset
+    protocol_path: ${data_root}/ASVspoof2019_LA_cm_protocols/ASVspoof2019.LA.cm.train.trn.txt
+    audio_dir: ${data_root}/ASVspoof2019_LA_train/flac
+    target_length: ${audio.target_length}
+    expected_sample_rate: ${audio.sample_rate}
+    random_crop: false
+  indices:
+    - 0 # LA_T_1138215, bonafide
+    - 1 # LA_T_1271820, bonafide
+    - 2580 # LA_T_1004644, spoof
+    - 2581 # LA_T_1056709, spoof
+
+dev:
+  _target_: torch.utils.data.Subset
+  dataset: ${datasets.train.dataset}
+  indices: ${datasets.train.indices}

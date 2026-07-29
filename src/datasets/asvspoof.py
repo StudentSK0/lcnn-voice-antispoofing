@@ -167,8 +167,3 @@ def build_asvspoof_index(
         index_entries.append(index_entry)
 
     return index_entries
-
-
-if __name__ == "__main__":
-    print(parse_protocol_line("LA_0039 LA_E_2834763 - A11 spoof"))
-    print(parse_protocol_line("LA_0069 LA_D_1047731 - - bonafide"))

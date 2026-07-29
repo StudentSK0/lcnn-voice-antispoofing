@@ -1,0 +1,15 @@
+train:
+  _target_: src.datasets.ASVspoofDataset
+  protocol_path: ${data_root}/ASVspoof2019_LA_cm_protocols/ASVspoof2019.LA.cm.train.trn.txt
+  audio_dir: ${data_root}/ASVspoof2019_LA_train/flac
+  target_length: ${audio.target_length}
+  expected_sample_rate: ${audio.sample_rate}
+  random_crop: true
+
+dev:
+  _target_: src.datasets.ASVspoofDataset
+  protocol_path: ${data_root}/ASVspoof2019_LA_cm_protocols/ASVspoof2019.LA.cm.dev.trl.txt
+  audio_dir: ${data_root}/ASVspoof2019_LA_dev/flac
+  target_length: ${audio.target_length}
+  expected_sample_rate: ${audio.sample_rate}
+  random_crop: false

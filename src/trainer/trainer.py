@@ -1,3 +1,6 @@
+import torch
+
+from calculate_eer import compute_eer
 from src.metrics.tracker import MetricTracker
 from src.trainer.base_trainer import BaseTrainer
 
@@ -37,6 +40,11 @@ class Trainer(BaseTrainer):
         outputs = self.model(**batch)
         batch.update(outputs)
 
+        if not self.is_train and self.config.trainer.get("compute_eer", False):
+            scores = batch["logits"][:, 1] - batch["logits"][:, 0]
+            self._evaluation_scores.append(scores.detach().cpu())
+            self._evaluation_labels.append(batch["labels"].detach().cpu())
+
         all_losses = self.criterion(**batch)
         batch.update(all_losses)
 
@@ -55,10 +63,41 @@ class Trainer(BaseTrainer):
             metrics.update(met.name, met(**batch))
         return batch
 
+    def _evaluation_epoch(self, epoch, part, dataloader):
+        """Evaluate one split and compute EER over all of its samples."""
+        if not self.config.trainer.get("compute_eer", False):
+            return super()._evaluation_epoch(epoch, part, dataloader)
+
+        self._evaluation_scores = []
+        self._evaluation_labels = []
+
+        logs = super()._evaluation_epoch(epoch, part, dataloader)
+
+        scores = torch.cat(self._evaluation_scores)
+        labels = torch.cat(self._evaluation_labels)
+
+        if not torch.isfinite(scores).all():
+            raise ValueError(f"Non-finite scores encountered on the {part} split")
+
+        bonafide_scores = scores[labels == 1].numpy()
+        spoof_scores = scores[labels == 0].numpy()
+
+        if bonafide_scores.size == 0 or spoof_scores.size == 0:
+            raise ValueError(
+                f"EER requires both bonafide and spoof samples on the {part} split"
+            )
+
+        eer, _ = compute_eer(bonafide_scores, spoof_scores)
+        eer_percent = float(eer) * 100.0
+        logs["EER"] = eer_percent
+
+        self.writer.add_scalar("EER", eer_percent)
+
+        return logs
+
     def _log_batch(self, batch_idx, batch, mode="train"):
         """
-        Log data from batch. Calls self.writer.add_* to log data
-        to the experiment tracker.
+        Batch-level media logging hook.
 
         Args:
             batch_idx (int): index of the current batch.
@@ -67,13 +106,4 @@ class Trainer(BaseTrainer):
             mode (str): train or inference. Defines which logging
                 rules to apply.
         """
-        # method to log data from you batch
-        # such as audio, text or images, for example
-
-        # logging scheme might be different for different partitions
-        if mode == "train":  # the method is called only every self.log_step steps
-            img = batch["img"][0].detach().cpu().numpy().transpose(1, 2, 0)
-            self.writer.add_image("image", img)
-        else:
-            img = batch["img"][0].detach().cpu().numpy().transpose(1, 2, 0)
-            self.writer.add_image("image", img)
+        pass

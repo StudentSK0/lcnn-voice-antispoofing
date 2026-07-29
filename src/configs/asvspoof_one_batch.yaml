@@ -1,0 +1,17 @@
+defaults:
+  - asvspoof
+  - override /datasets: asvspoof_one_batch
+  - _self_
+
+dataloader:
+  batch_size: 4
+  num_workers: 0
+
+trainer:
+  log_step: 1
+  n_epochs: 200
+  monitor: "off"
+  save_period: 200
+
+writer:
+  run_name: "lcnn-one-batch-overfit"

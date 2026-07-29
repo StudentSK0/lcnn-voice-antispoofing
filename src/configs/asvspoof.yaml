@@ -1,0 +1,51 @@
+defaults:
+  - model: lcnn
+  - writer: wandb
+  - metrics: accuracy
+  - datasets: asvspoof
+  - dataloader: asvspoof
+  - transforms: asvspoof
+  - _self_
+
+data_root: ${oc.env:ASVSPOOF_ROOT,data/ASVspoof2019/LA}
+
+audio:
+  sample_rate: 16000
+  n_fft: 1724
+  win_length: 1724
+  hop_length: 130
+  n_frames: 600
+  target_length: 79594
+
+optimizer:
+  _target_: torch.optim.Adam
+  lr: 3e-4
+
+# Trainer advances StepLR after every optimizer step. With 25,380 training
+# samples, batch_size=8 and drop_last=true, 31,720 steps are ten full epochs.
+lr_scheduler:
+  _target_: torch.optim.lr_scheduler.StepLR
+  gamma: 0.5
+  step_size: 31720
+
+loss_function:
+  _target_: src.loss.CrossEntropyLoss
+
+trainer:
+  log_step: 50
+  n_epochs: 30
+  epoch_len: null
+  device_tensors: ["waveform", "labels"]
+  resume_from: null
+  device: auto
+  override: false
+  monitor: "min dev_EER"
+  save_period: 5
+  save_dir: "saved"
+  seed: 1
+  skip_oom: true
+  compute_eer: true
+
+writer:
+  project_name: "lcnn-voice-antispoofing"
+  run_name: "lcnn-ce-baseline"
