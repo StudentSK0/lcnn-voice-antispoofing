@@ -1,0 +1,30 @@
+defaults:
+  - model: lcnn
+  - datasets: asvspoof_eval
+  - dataloader: asvspoof
+  - transforms: asvspoof
+  - _self_
+
+data_root: ${oc.env:ASVSPOOF_ROOT,data/ASVspoof2019/LA}
+
+audio:
+  sample_rate: 16000
+  n_fft: 1724
+  win_length: 1724
+  hop_length: 130
+  n_frames: 600
+  target_length: 79594
+
+metrics:
+  train: []
+  inference: []
+
+inferencer:
+  runner: src.trainer.ASVspoofInferencer
+  device_tensors: ["waveform"]
+  device: auto
+  save_path: "asvspoof_eval"
+  output_filename: ${oc.env:SUBMISSION_FILENAME,submission.csv}
+  expected_num_predictions: 71237
+  seed: 1
+  from_pretrained: ${oc.env:ASVSPOOF_CHECKPOINT,saved/lcnn-ce-seed1-restart/model_best.pth}

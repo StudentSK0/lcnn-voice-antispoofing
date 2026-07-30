@@ -2,10 +2,9 @@ import warnings
 
 import hydra
 import torch
-from hydra.utils import instantiate
+from hydra.utils import get_class, instantiate
 
 from src.datasets.data_utils import get_dataloaders
-from src.trainer import Inferencer
 from src.utils.init_utils import set_random_seed
 from src.utils.io_utils import ROOT_PATH
 
@@ -44,7 +43,8 @@ def main(config):
     save_path = ROOT_PATH / "data" / "saved" / config.inferencer.save_path
     save_path.mkdir(exist_ok=True, parents=True)
 
-    inferencer = Inferencer(
+    inferencer_class = get_class(config.inferencer.runner)
+    inferencer = inferencer_class(
         model=model,
         config=config,
         device=device,
