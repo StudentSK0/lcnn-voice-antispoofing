@@ -243,6 +243,13 @@ class LCNN(nn.Module):
             dropout_probability=dropout_probability,
             num_classes=num_classes,
         )
+        self._initialize_weights()
+
+    def _initialize_weights(self) -> None:
+        """Initialize convolutional and linear weights with Kaiming normal."""
+        for module in self.modules():
+            if isinstance(module, (nn.Conv2d, nn.Linear)):
+                nn.init.kaiming_normal_(module.weight)
 
     def forward(self, x: Tensor) -> Tensor:
         features = self.feature_extractor(x)

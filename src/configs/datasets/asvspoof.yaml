@@ -4,7 +4,7 @@ train:
   audio_dir: ${data_root}/ASVspoof2019_LA_train/flac
   target_length: ${audio.target_length}
   expected_sample_rate: ${audio.sample_rate}
-  random_crop: true
+  random_crop: false
 
 dev:
   _target_: src.datasets.ASVspoofDataset
