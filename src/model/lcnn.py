@@ -15,6 +15,7 @@ class LCNNStem(nn.Module):
             padding=2,
             bias=True,
         )
+
         self.mfm = MaxFeatureMap()
         self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
 
@@ -37,6 +38,7 @@ class LCNNBlock2(nn.Module):
             padding=0,
             bias=True,
         )
+
         self.mfm_5 = MaxFeatureMap()
         self.batch_norm_6 = nn.BatchNorm2d(32)
 
@@ -48,6 +50,7 @@ class LCNNBlock2(nn.Module):
             padding=1,
             bias=True,
         )
+
         self.mfm_8 = MaxFeatureMap()
         self.pool_9 = nn.MaxPool2d(kernel_size=2, stride=2)
         self.batch_norm_10 = nn.BatchNorm2d(48)
@@ -77,6 +80,7 @@ class LCNNBlock3(nn.Module):
             padding=0,
             bias=True,
         )
+
         self.mfm_12 = MaxFeatureMap()
         self.batch_norm_13 = nn.BatchNorm2d(48)
 
@@ -88,6 +92,7 @@ class LCNNBlock3(nn.Module):
             padding=1,
             bias=True,
         )
+
         self.mfm_15 = MaxFeatureMap()
         self.pool_16 = nn.MaxPool2d(kernel_size=2, stride=2)
 
@@ -115,6 +120,7 @@ class LCNNBlock4(nn.Module):
             padding=0,
             bias=True,
         )
+
         self.mfm_18 = MaxFeatureMap()
         self.batch_norm_19 = nn.BatchNorm2d(64)
 
@@ -126,6 +132,7 @@ class LCNNBlock4(nn.Module):
             padding=1,
             bias=True,
         )
+
         self.mfm_21 = MaxFeatureMap()
         self.batch_norm_22 = nn.BatchNorm2d(32)
 
@@ -153,6 +160,7 @@ class LCNNBlock5(nn.Module):
             padding=0,
             bias=True,
         )
+
         self.mfm_24 = MaxFeatureMap()
         self.batch_norm_25 = nn.BatchNorm2d(32)
 
@@ -164,6 +172,7 @@ class LCNNBlock5(nn.Module):
             padding=1,
             bias=True,
         )
+
         self.mfm_27 = MaxFeatureMap()
         self.pool_28 = nn.MaxPool2d(kernel_size=2, stride=2)
 
@@ -212,6 +221,7 @@ class LCNNClassifier(nn.Module):
             out_features=160,
             bias=True,
         )
+
         self.mfm_30 = MaxFeatureMap()
 
         self.dropout = nn.Dropout(p=dropout_probability)
@@ -239,14 +249,11 @@ class LCNN(nn.Module):
         super().__init__()
 
         self.feature_extractor = LCNNFeatureExtractor()
-        self.classifier = LCNNClassifier(
-            dropout_probability=dropout_probability,
-            num_classes=num_classes,
-        )
+        self.classifier = LCNNClassifier(dropout_probability, num_classes)
+
         self._initialize_weights()
 
     def _initialize_weights(self) -> None:
-        """Initialize convolutional and linear weights with Kaiming normal."""
         for module in self.modules():
             if isinstance(module, (nn.Conv2d, nn.Linear)):
                 nn.init.kaiming_normal_(module.weight)
