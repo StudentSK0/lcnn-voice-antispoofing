@@ -251,13 +251,6 @@ class LCNN(nn.Module):
         self.feature_extractor = LCNNFeatureExtractor()
         self.classifier = LCNNClassifier(dropout_probability, num_classes)
 
-        self._initialize_weights()
-
-    def _initialize_weights(self) -> None:
-        for module in self.modules():
-            if isinstance(module, (nn.Conv2d, nn.Linear)):
-                nn.init.kaiming_normal_(module.weight)
-
     def forward(self, x: Tensor) -> Tensor:
         features = self.feature_extractor(x)
         logits = self.classifier(features)
